@@ -302,7 +302,7 @@ function (lcov_capture_tgt TNAME)
 	# Add target for generating html output for this target only.
 	file(MAKE_DIRECTORY ${LCOV_HTML_PATH}/${TNAME})
 	add_custom_target(${TNAME}-genhtml
-		COMMAND ${GENHTML_BIN} --quiet --legend --sort ${GENHTML_CPPFILT_FLAG}
+		COMMAND ${GENHTML_BIN} --quiet --legend --branch-coverage --sort ${GENHTML_CPPFILT_FLAG}
                         --prefix ${PROJECT_SOURCE_DIR}
 			--baseline-file ${LCOV_DATA_PATH_INIT}/${TNAME}.info
 			--output-directory ${LCOV_HTML_PATH}/${TNAME}
@@ -360,6 +360,7 @@ if (NOT TARGET lcov-genhtml)
 	add_custom_target(lcov-genhtml
 		COMMAND ${GENHTML_BIN}
 			--quiet --legend
+      --branch-coverage
 			--output-directory ${LCOV_HTML_PATH}/selected_targets
 			--title \"${CMAKE_PROJECT_NAME} - targets  `find
 				${LCOV_DATA_PATH_CAPTURE} -name \"*.info\" ! -name
