@@ -106,9 +106,9 @@ function (lcov_merge_files OUTFILE ...)
 	)
 
 	add_custom_command(OUTPUT "${OUTFILE}"
-		COMMAND ${LCOV_BIN} --quiet -a ${OUTFILE}.raw --output-file ${OUTFILE}
+		COMMAND ${LCOV_BIN} --quiet --rc lcov_branch_coverage=1 -a ${OUTFILE}.raw --output-file ${OUTFILE}
 			--base-directory ${PROJECT_SOURCE_DIR} ${LCOV_EXTRA_FLAGS}
-		COMMAND ${LCOV_BIN} --quiet -r ${OUTFILE} ${LCOV_REMOVE_PATTERNS}
+		COMMAND ${LCOV_BIN} --quiet --rc lcov_branch_coverage=1 -r ${OUTFILE} ${LCOV_REMOVE_PATTERNS}
 			--output-file ${OUTFILE} ${LCOV_EXTRA_FLAGS}
 		DEPENDS ${OUTFILE}.raw
 		COMMENT "Post-processing ${FILE_REL}"
@@ -174,6 +174,7 @@ function (lcov_capture_initial_tgt TNAME)
 		add_custom_command(OUTPUT ${OUTFILE} COMMAND ${GCOV_ENV} ${GENINFO_BIN}
 				--quiet --base-directory ${PROJECT_SOURCE_DIR} --initial
 				--gcov-tool ${GCOV_BIN} --output-filename ${OUTFILE}
+				--rc lcov_branch_coverage=1
 				${GENINFO_EXTERN_FLAG} ${TDIR}/${REL_FILE}.gcno
 				${GENINFO_EXTRA_FLAGS}
 			DEPENDS ${TNAME}
@@ -280,7 +281,9 @@ function (lcov_capture_tgt TNAME)
 			COMMAND test -s "${TDIR}/${REL_FILE}.gcda"
 				&& ${GCOV_ENV} ${GENINFO_BIN} --quiet --base-directory
 					${PROJECT_SOURCE_DIR} --gcov-tool ${GCOV_BIN}
-					--output-filename ${OUTFILE} ${GENINFO_EXTERN_FLAG}
+					--output-filename ${OUTFILE}
+					--rc lcov_branch_coverage=1
+					${GENINFO_EXTERN_FLAG}
 					${TDIR}/${REL_FILE}.gcda ${GENINFO_EXTRA_FLAGS}
 				|| cp ${OUTFILE}.init ${OUTFILE}
 			DEPENDS ${TNAME} ${TNAME}-capture-init "${TDIR}/${REL_FILE}.gcda"
@@ -336,7 +339,8 @@ function (lcov_capture)
 	if (NOT TARGET lcov)
 		file(MAKE_DIRECTORY ${LCOV_HTML_PATH}/all_targets)
 		add_custom_target(lcov
-			COMMAND ${GENHTML_BIN} --quiet --sort
+			COMMAND ${GENHTML_BIN} --quiet --sort --legend --branch-coverage
+				${GENHTML_CPPFILT_FLAG}
 				--baseline-file ${LCOV_DATA_PATH_INIT}/all_targets.info
 				--output-directory ${LCOV_HTML_PATH}/all_targets
 				--title "${CMAKE_PROJECT_NAME}" --prefix "${PROJECT_SOURCE_DIR}"
@@ -360,7 +364,7 @@ if (NOT TARGET lcov-genhtml)
 	add_custom_target(lcov-genhtml
 		COMMAND ${GENHTML_BIN}
 			--quiet --legend
-      --branch-coverage
+			--branch-coverage
 			--output-directory ${LCOV_HTML_PATH}/selected_targets
 			--title \"${CMAKE_PROJECT_NAME} - targets  `find
 				${LCOV_DATA_PATH_CAPTURE} -name \"*.info\" ! -name
